@@ -14,9 +14,10 @@
 
 CHDeclareClass(AppDelegate)
 AppDelegate *storedAppDelegate = nil; //这个会一直有效,所以不存在ref问题
-
+BOOL hotKeyPressed=FALSE;
 OSStatus hotKeyHandler(EventHandlerCallRef nextHandler, EventRef anEvent, void *userData) {
     id aaa = storedAppDelegate;
+    hotKeyPressed=TRUE;
     [aaa removeBreakScreens];
     return noErr;
 }
@@ -121,7 +122,10 @@ void setBreakScreens(AppDelegate *appDelegate) {
 
 CHOptimizedMethod0(self, void, AppDelegate, removeBreakScreens) {
     NSLog(@"removeBreakScreens called");
-    removeBreakScreens();
+    if(!hotKeyPressed){
+        removeBreakScreens();
+    }
+    hotKeyPressed=FALSE; //永远只生效一次
     CHSuper0(AppDelegate, removeBreakScreens);
 }
 
