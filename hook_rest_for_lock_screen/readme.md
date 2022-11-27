@@ -25,7 +25,7 @@ DYLD_INSERT_LIBRARIES=libmyinjectlib.dylib ./Res
 ## 注入点分析
 休息窗口的特点是一个全屏的窗口,并且该窗口要在所有窗口之前. 因此NSWindow的setLevel就是一个比较好的入口点,经过搜索发现,该调用只有一处`-[AppDelegate setBreakScreens](AppDelegate *self, SEL a2)`. 
 经过对该函数的分析,可以发现这个就是启动休息的函数.
- 
+
 注意到里面的`removeBreakScreens`,按照名字提示,应该是结束休息的函数. 所以对以上两个函数进行hook,应该可以达到我们的目的:
 1. hook `removeBreakScreens`,结束的时候进行锁屏.
 2. hook `setBreakScreens` 可以在里面注册一个快捷键(不是全局的),这样万一有工作的时候,可以立即结束休息.
@@ -55,6 +55,14 @@ CHConstructor {
 ```
 
 经过验证,确实每次启动休息都会调用`setBreakScreens`,而无论是正常结束休息,还是点击`let me work`都会调用`removeBreakScreens`. 
+
+
+
+## 高版本启动失败的问题
+
+由于mac在版本中删除了python 2.7,所以需要自行安装python2.7,并且记得安装pyobjc
+
+pip install -U pyobjc
 
 
 ## 其他

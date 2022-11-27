@@ -11,6 +11,8 @@
 #import <Carbon/Carbon.h>
 #import "myinjectlib.h"
 #import "CaptainHook.h"
+#import "CoreGraphics/CGWindowLevel.h"
+
 
 CHDeclareClass(AppDelegate)
 AppDelegate *storedAppDelegate = nil; //这个会一直有效,所以不存在ref问题
@@ -105,7 +107,7 @@ NSString * lockCommand=@"import objc\n"
                        "do_it()";
 void removeBreakScreens(){
     NSTask *task = [[NSTask alloc] init];
-    task.launchPath = @"/usr/bin/python";
+    task.launchPath = @"/usr/local/bin/python";
     task.arguments = @[@"-c", lockCommand];
     [task launch];
     [NSThread sleepForTimeInterval:1];
@@ -164,5 +166,31 @@ CHConstructor {
 
 - (void)removeBreakScreens {
 
+}
+
+- (void)setBreakScreens: (AppDelegate *) app{
+    int n=[[NSScreen screens] count];
+    while(n>0) {
+        n--;
+        NSWindow* win= [NSWindow.alloc initWithContentRect:NSRectFromString(@"") styleMask:NSWindowStyleMaskClosable backing: NSBackingStoreRetained defer:TRUE];
+        [win setAlphaValue:0];
+        [win setHasShadow:0];
+        [win setBackgroundColor:[NSColor blackColor]];
+        NSString *s=[NSString stringWithFormat:@"%i", n];
+        [win setTitle:s];
+        [win setLevel:CGWindowLevelForKey(  kCGScreenSaverWindowLevelKey)];
+        [win makeKeyAndOrderFront:win];
+        NSInteger preventSkippingBreaks=[[NSUserDefaults standardUserDefaults] integerForKey:@"preventSkippingBreaks"];
+        if(preventSkippingBreaks>0){
+            NSWindowCollectionBehavior behavior=[win collectionBehavior];
+            behavior|=NSWindowCollectionBehaviorCanJoinAllSpaces;
+           [win setCollectionBehavior:behavior];
+        }
+        NSScreen * screen= [[NSScreen screens] objectAtIndex:n];
+        NSRect frame=[screen frame];
+        NSView *view=[win contentView];
+        [view addCursorRect:frame cursor:[NSCursor arrowCursor]];
+
+    }
 }
 @end
